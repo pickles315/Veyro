@@ -25,7 +25,7 @@
   <div class="composer-wrap"><form class="composer" id="composer"><textarea id="prompt" placeholder="Message Veyro…" rows="1" maxlength="20000"></textarea><div class="composer-bottom"><span class="hint">Enter to send · Shift+Enter for a new line</span><button class="primary send" id="sendBtn" type="submit">Send ↑</button></div></form><div class="footnote">Veyro can make mistakes. Your memories stay under your control.</div></div>
 </main>
 </div>
-<div id="authOverlay" class="overlay"><div class="modal"><div class="brand" style="padding:0 0 16px"><div class="mark">V</div><div><div class="brandname">Veyro</div><div class="tiny">A fresh start.</div></div></div><h2>Get into Veyro</h2><p>Enter your email and we'll send you a sign-in link. Your conversations and memories are private to your account.</p><form id="authForm"><div class="field"><label for="email">Email address</label><input id="email" type="email" autocomplete="email" placeholder="you@example.com" required></div><div id="authError" class="error"></div><div class="modal-actions"><button class="primary" type="submit" id="authSubmit">Email me a sign-in link</button></div></form><p class="tiny">If the link doesn't arrive, check spam. Email sign-in must be enabled in your Supabase Auth settings.</p></div></div>
+<div id="authOverlay" class="overlay"><div class="modal"><div class="brand" style="padding:0 0 16px"><div class="mark">V</div><div><div class="brandname">Veyro</div><div class="tiny">A fresh start.</div></div></div><h2>Get into Veyro</h2><p>Sign in to keep your conversations and memories, or try Veyro without an account. Guest chats are not saved.</p><form id="authForm"><div class="field"><label for="email">Email address</label><input id="email" type="email" autocomplete="email" placeholder="you@example.com" required></div><div id="authError" class="error"></div><div class="modal-actions"><button class="primary" type="submit" id="authSubmit">Email me a sign-in link</button></div></form><button id="guestBtn" class="quiet" style="width:100%;margin-top:10px">Try without an account</button><p class="tiny">If a link expires, request a new one. Email sign-in must be enabled in Supabase Auth settings.</p></div></div>
 <div id="panelOverlay" class="overlay hidden"><div class="modal"><h2 id="panelTitle">Memories</h2><p id="panelDescription"></p><div id="panelContent"></div><div id="panelError" class="error"></div><div class="modal-actions" style="margin-top:18px"><button id="panelClose">Close</button><button class="primary" id="panelSave">Save changes</button></div></div></div>
 <div id="toast" class="toast hidden"></div>
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2.57.0/dist/umd/supabase.min.js"></script>
@@ -38,7 +38,7 @@ const $ = (id) => document.getElementById(id);
 const client = window.supabase.createClient(SUPABASE_URL, SUPABASE_PUBLISHABLE_KEY, {
   auth: { persistSession: true, autoRefreshToken: true, detectSessionInUrl: true }
 });
-let session = null, currentConversation = null, busy = false, panelMode = "memories", memories = [], settings = null;
+let session = null, isGuest = false, currentConversation = null, busy = false, panelMode = "memories", memories = [], settings = null;
 const welcome = $("welcome"), messagesEl = $("messages"), chatEl = $("chat");
 function toast(text){$("toast").textContent=text;$("toast").classList.remove("hidden");setTimeout(()=>$("toast").classList.add("hidden"),3000)}
 function setStatus(text){$("statusText").textContent=text}
@@ -60,6 +60,7 @@ function renderMessages(rows){
   chatEl.scrollTop=chatEl.scrollHeight;
 }
 async function loadHistory(){
+ if(isGuest){$("history").replaceChildren();return}
  const {data,error}=await client.from("conversations").select("id,title,updated_at").order("updated_at",{ascending:false}).limit(50);
  if(error){toast("Couldn't load conversations: "+error.message);return}
  const el=$("history");el.replaceChildren();
@@ -70,11 +71,13 @@ async function loadHistory(){
  }
 }
 async function newConversation(){
+ if(isGuest){currentConversation="guest";renderMessages([]);showWelcome();return currentConversation}
  const {data,error}=await client.from("conversations").insert({user_id:session.user.id,title:"New conversation"}).select("id").single();
  if(error){toast("Couldn't create a conversation: "+error.message);return null}
  currentConversation=data.id;renderMessages([]);showWelcome();await loadHistory();return currentConversation;
 }
 async function openConversation(id){
+ if(isGuest)return;
  currentConversation=id;const {data,error}=await client.from("messages").select("id,role,content,created_at").eq("conversation_id",id).order("created_at",{ascending:true}).limit(200);
  if(error){toast("Couldn't load messages: "+error.message);return}
  if(data?.length){showChat();renderMessages(data)}else{showWelcome();renderMessages([])}
@@ -82,6 +85,7 @@ async function openConversation(id){
 }
 async function ensureConversation(){if(currentConversation)return currentConversation;return await newConversation()}
 async function loadMemoryAndSettings(){
+ if(isGuest){memories=[];settings={display_name:"Guest",personality:"Casual, curious, witty, and natural. Be helpful without sounding corporate. Do not pretend to be human.",proactive_messages_enabled:false};return}
  const [m,s]=await Promise.all([
   client.from("memories").select("id,content,category,updated_at").order("updated_at",{ascending:false}).limit(50),
   client.from("user_settings").select("*").eq("user_id",session.user.id).maybeSingle()
@@ -97,19 +101,20 @@ async function sendMessage(raw){
  const optimistic=[...messagesEl.querySelectorAll(".message")].map(el=>({role:el.classList.contains("user")?"user":"assistant",content:el.querySelector(".body")?.textContent||""}));
  optimistic.push({role:"user",content});showChat();renderMessages(optimistic);
  try{
-  const {data:userRow,error:userErr}=await client.from("messages").insert({conversation_id:cid,user_id:session.user.id,role:"user",content}).select("id").single();
-  if(userErr)throw userErr;
-  const title=content.length>42?content.slice(0,39)+"…":content;
-  const existingCount=optimistic.length;
-  if(existingCount<=1){await client.from("conversations").update({title,updated_at:new Date().toISOString()}).eq("id",cid)}
+  if(!isGuest){
+   const {error:userErr}=await client.from("messages").insert({conversation_id:cid,user_id:session.user.id,role:"user",content}).select("id").single();
+   if(userErr)throw userErr;
+   const title=content.length>42?content.slice(0,39)+"…":content;
+   const existingCount=optimistic.length;
+   if(existingCount<=1){await client.from("conversations").update({title,updated_at:new Date().toISOString()}).eq("id",cid)}
+  }
   const history=optimistic.slice(-30).map(m=>({role:m.role,content:m.content}));
   const response=await fetch(CHAT_FUNCTION_URL,{method:"POST",headers:{"Content-Type":"application/json","Authorization":"Bearer "+session.access_token,"apikey":SUPABASE_PUBLISHABLE_KEY},body:JSON.stringify({messages:history,personality:settings?.personality,memories:memories.map(m=>m.content)})});
   const result=await response.json().catch(()=>({}));
   if(!response.ok)throw new Error(result.error||"AI request failed ("+response.status+").");
   if(typeof result.reply!=="string"||!result.reply.trim())throw new Error("Veyro returned an empty response.");
-  const {error:saveErr}=await client.from("messages").insert({conversation_id:cid,user_id:session.user.id,role:"assistant",content:result.reply});
-  if(saveErr)throw saveErr;
-  const finalRows=[...optimistic,{role:"assistant",content:result.reply}];renderMessages(finalRows);await loadHistory();setStatus("Ready");
+  if(!isGuest){const {error:saveErr}=await client.from("messages").insert({conversation_id:cid,user_id:session.user.id,role:"assistant",content:result.reply});if(saveErr)throw saveErr}
+  const finalRows=[...optimistic,{role:"assistant",content:result.reply}];renderMessages(finalRows);if(!isGuest)await loadHistory();setStatus("Ready");
  }catch(e){
   const err=e?.message||"Something went wrong.";
   toast(err);
@@ -117,16 +122,16 @@ async function sendMessage(raw){
  }finally{setBusy(false);$("prompt").focus()}
 }
 async function startSession(s){
- session=s;$("authOverlay").classList.add("hidden");$("userLabel").textContent=s.user.email||"Your account";setStatus("Loading…");
- const {error}=await client.from("user_settings").upsert({user_id:s.user.id},{onConflict:"user_id",ignoreDuplicates:true});
- if(error)console.warn("Settings init:",error.message);
+ session=s;isGuest=s.user.is_anonymous===true;$("authOverlay").classList.add("hidden");$("userLabel").textContent=isGuest?"Guest":(s.user.email||"Your account");setStatus("Loading…");
+ if(!isGuest){const {error}=await client.from("user_settings").upsert({user_id:s.user.id},{onConflict:"user_id",ignoreDuplicates:true});if(error)console.warn("Settings init:",error.message)}
  await loadMemoryAndSettings();await loadHistory();setStatus("Ready");
+ if(isGuest){currentConversation="guest";renderMessages([]);showWelcome();return}
  const {data}=await client.from("conversations").select("id").order("updated_at",{ascending:false}).limit(1).maybeSingle();
  if(data?.id)await openConversation(data.id);else await newConversation();
 }
 $("authForm").addEventListener("submit",async e=>{
  e.preventDefault();showError("authError","");$("authSubmit").disabled=true;$("authSubmit").textContent="Sending…";
- try{const email=$("email").value.trim();const {error}=await client.auth.signInWithOtp({email,options:{emailRedirectTo:location.href.split("#")[0]}});if(error)throw error;showError("authError","Sign-in link sent. Open it from this browser to continue.");}
+ try{const email=$("email").value.trim();const {error}=await client.auth.signInWithOtp({email,options:{emailRedirectTo:"https://pickles315.github.io/Veyro/"}});if(error)throw error;showError("authError","Sign-in link sent. Open it from this browser to continue.");}
  catch(err){showError("authError",err.message||"Could not send sign-in link.");}
  finally{$("authSubmit").disabled=false;$("authSubmit").textContent="Email me a sign-in link"}
 });
@@ -134,9 +139,10 @@ client.auth.onAuthStateChange((_event,s)=>{if(s&&!session){setTimeout(()=>startS
 $("composer").addEventListener("submit",e=>{e.preventDefault();sendMessage($("prompt").value)});
 $("prompt").addEventListener("keydown",e=>{if(e.key==="Enter"&&!e.shiftKey){e.preventDefault();$("composer").requestSubmit()}});
 $("prompt").addEventListener("input",()=>{$("prompt").style.height="auto";$("prompt").style.height=Math.min($("prompt").scrollHeight,180)+"px"});
-$("newChat").addEventListener("click",async()=>{if(busy)return;currentConversation=null;renderMessages([]);showWelcome();await newConversation()});
+$("newChat").addEventListener("click",async()=>{if(busy)return;currentConversation=null;renderMessages([]);showWelcome();if(!isGuest)await newConversation();else currentConversation="guest"});
+$("guestBtn").addEventListener("click",async()=>{showError("authError","");$("guestBtn").disabled=true;$("guestBtn").textContent="Starting guest session…";try{const {data,error}=await client.auth.signInAnonymously();if(error)throw error;if(data.session)await startSession(data.session)}catch(err){showError("authError","Guest mode needs anonymous sign-ins enabled in Supabase. "+(err.message||""));}finally{$("guestBtn").disabled=false;$("guestBtn").textContent="Try without an account"}});
 document.querySelectorAll("[data-prompt]").forEach(b=>b.addEventListener("click",()=>{$("prompt").value=b.dataset.prompt;$("prompt").focus()}));
-$("signOutBtn").addEventListener("click",async()=>{await client.auth.signOut();session=null;currentConversation=null;memories=[];settings=null;$("authOverlay").classList.remove("hidden");showWelcome();renderMessages([])});
+$("signOutBtn").addEventListener("click",async()=>{await client.auth.signOut();session=null;isGuest=false;currentConversation=null;memories=[];settings=null;$("authOverlay").classList.remove("hidden");showWelcome();renderMessages([])});
 $("panelClose").addEventListener("click",()=>$("panelOverlay").classList.add("hidden"));
 $("memoryBtn").addEventListener("click",()=>openPanel("memories"));
 $("settingsBtn").addEventListener("click",()=>openPanel("settings"));
