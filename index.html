@@ -51,7 +51,7 @@
 <div id="app" class="app">
 <aside class="sidebar">
   <div class="brand"><div class="mark">V</div><div><div class="brandname">Veyro</div><div class="tiny">your AI, your space</div></div></div>
-  <div class="sideactions"><button class="primary" id="newChat">＋ &nbsp; New conversation</button><button id="memoryBtn">◇ &nbsp; Memories</button><button id="settingsBtn">⚙ &nbsp; Personality</button><button id="pythonLabBtn">▶ &nbsp; Python lab <span class="tiny">/ new</span></button><button id="buildModeBtn" aria-pressed="false">⌘ &nbsp; Build mode</button></div>
+  <div class="sideactions"><button class="primary" id="newChat">＋ &nbsp; New conversation</button><button id="settingsBtn">⚙ &nbsp; Settings</button><button id="pythonLabBtn">▶ &nbsp; Python lab <span class="tiny">/ new</span></button><button id="buildModeBtn" aria-pressed="false">⌘ &nbsp; Build mode</button></div>
   <div class="section-label">Recent conversations</div><div class="history" id="history"></div>
   <div class="sidebottom"><div class="userline"><div class="avatar">Y</div><div class="usertext"><div id="userLabel">Not signed in</div><div class="tiny">Veyro account</div></div></div><button class="quiet" id="signOutBtn">Sign out</button></div>
 </aside>
@@ -323,7 +323,6 @@ $("pythonResetBtn").addEventListener("click",()=>{$("pythonCode").value=defaultP
 $("pythonClearBtn").addEventListener("click",clearPythonOutput);
 $("pythonRunBtn").addEventListener("click",runPythonCode);
 $("pythonStopBtn").addEventListener("click",()=>stopPython("Stopped by you."));
-$("memoryBtn").addEventListener("click",()=>openPanel("memories"));
 $("settingsBtn").addEventListener("click",()=>openPanel("personality"));
 try{applyAccent(localStorage.getItem("veyro-accent")||"green",false)}catch{applyAccent("green",false)}
 
