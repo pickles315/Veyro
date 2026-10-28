@@ -34,13 +34,23 @@
 .message .body th,.message .body td{border:1px solid var(--line);padding:7px 10px;text-align:left;min-width:80px}
 .message .body th{background:#22262e}
 .message .body img{max-width:100%;height:auto;border-radius:8px}
-\n</style>
+/* Release 02: browser-side Python lab */
+.python-modal{width:min(850px,100%);max-height:min(92dvh,900px);overflow:auto}
+.python-toolbar{display:flex;align-items:center;justify-content:space-between;gap:10px;flex-wrap:wrap;margin:14px 0 8px}
+.python-toolbar .tiny{max-width:520px}
+.python-editor{display:block;width:100%;min-height:240px;resize:vertical;background:#101216;color:#e9edf5;border:1px solid #343842;border-radius:12px;padding:14px;font:13px/1.6 ui-monospace,SFMono-Regular,Consolas,monospace;tab-size:4;outline:none}
+.python-editor:focus{border-color:var(--accent)}
+.python-terminal{min-height:100px;max-height:230px;overflow:auto;white-space:pre-wrap;overflow-wrap:anywhere;background:#0b0d10;border:1px solid #292e37;border-radius:12px;padding:13px;color:#cbd3df;font:12px/1.6 ui-monospace,SFMono-Regular,Consolas,monospace}
+.python-terminal .out{color:#dce3ee}.python-terminal .err{color:#ff9a9a}.python-terminal .sys{color:#aab2c0}
+.python-actions{display:flex;gap:8px;flex-wrap:wrap}
+.code-panel-head .run-python{border-color:#4a5837;color:var(--accent)}
+</style>
 </head>
 <body>
 <div id="app" class="app">
 <aside class="sidebar">
   <div class="brand"><div class="mark">V</div><div><div class="brandname">Veyro</div><div class="tiny">your AI, your space</div></div></div>
-  <div class="sideactions"><button class="primary" id="newChat">＋ &nbsp; New conversation</button><button id="memoryBtn">◇ &nbsp; Memories</button><button id="settingsBtn">⚙ &nbsp; Personality</button></div>
+  <div class="sideactions"><button class="primary" id="newChat">＋ &nbsp; New conversation</button><button id="memoryBtn">◇ &nbsp; Memories</button><button id="settingsBtn">⚙ &nbsp; Personality</button><button id="pythonLabBtn">▶ &nbsp; Python lab <span class="tiny">/ new</span></button></div>
   <div class="section-label">Recent conversations</div><div class="history" id="history"></div>
   <div class="sidebottom"><div class="userline"><div class="avatar">Y</div><div class="usertext"><div id="userLabel">Not signed in</div><div class="tiny">Veyro account</div></div></div><button class="quiet" id="signOutBtn">Sign out</button></div>
 </aside>
@@ -52,7 +62,9 @@
 </div>
 <div id="authOverlay" class="overlay"><div class="modal"><div class="brand" style="padding:0 0 16px"><div class="mark">V</div><div><div class="brandname">Veyro</div><div class="tiny">A fresh start.</div></div></div><h2>Get into Veyro</h2><p>Sign in to keep your conversations and memories, or try Veyro without an account. Guest chats are not saved.</p><form id="authForm"><div class="field"><label for="email">Email address</label><input id="email" type="email" autocomplete="email" placeholder="you@example.com" required></div><div id="authError" class="error"></div><div class="modal-actions"><button class="primary" type="submit" id="authSubmit">Email me a sign-in link</button></div></form><button id="guestBtn" class="quiet" style="width:100%;margin-top:10px">Try without an account</button><p class="tiny">If a link expires, request a new one. Email sign-in must be enabled in Supabase Auth settings.</p></div></div>
 <div id="panelOverlay" class="overlay hidden"><div class="modal"><h2 id="panelTitle">Memories</h2><p id="panelDescription"></p><div id="panelContent"></div><div id="panelError" class="error"></div><div class="modal-actions" style="margin-top:18px"><button id="panelClose">Close</button><button class="primary" id="panelSave">Save changes</button></div></div></div>
-<div id="toast" class="toast hidden"></div>
+<div id="pythonOverlay" class="overlay hidden"><section class="modal python-modal" role="dialog" aria-modal="true" aria-labelledby="pythonTitle"><h2 id="pythonTitle">Python lab</h2><p>Run Python in your browser. Your code is not sent to Veyro's AI server. Python runs in a separate browser worker with a time limit; this is for learning and small scripts, not a fully isolated production sandbox.</p><div class="python-toolbar"><span class="tiny" id="pythonStatus">Ready · Python loads on first run</span><div class="python-actions"><button id="pythonStopBtn" disabled>Stop</button><button id="pythonResetBtn">Reset</button><button class="primary" id="pythonRunBtn">▶ Run Python</button></div></div><label class="tiny" for="pythonCode">CODE</label><textarea id="pythonCode" class="python-editor" spellcheck="false" autocapitalize="off" autocomplete="off">print("Hello from Veyro!")
+for number in range(1, 6):
+    print(number)</textarea><div class="python-toolbar"><strong>Output</strong><button id="pythonClearBtn" class="quiet">Clear output</button></div><pre id="pythonOutput" class="python-terminal" aria-live="polite">Output will appear here.</pre><div class="modal-actions" style="margin-top:14px"><button id="pythonCloseBtn">Close</button></div></section></div><div id="toast" class="toast hidden"></div>
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2.57.0/dist/umd/supabase.min.js"></script>
 <script src="https://cdn.jsdelivr.net/npm/marked@15.0.7/marked.min.js"></script>
 <script src="https://cdn.jsdelivr.net/npm/dompurify@3.2.6/dist/purify.min.js"></script>
@@ -92,7 +104,7 @@ function renderMarkdown(target, source){
       const label=document.createElement("span");label.textContent=language;
       const copy=document.createElement("button");copy.type="button";copy.textContent="Copy code";copy.className="copy-code";
       copy.addEventListener("click",async()=>{const ok=await copyText(code.textContent||"");if(ok){copy.textContent="Copied!";setTimeout(()=>copy.textContent="Copy code",1200)}else toast("Couldn't copy code automatically.")});
-      head.append(label,copy);pre.replaceWith(panel);panel.append(head,pre);
+      head.append(label);if((langClass||"").toLowerCase()==="language-python"||(langClass||"").toLowerCase()==="language-py"){const run=document.createElement("button");run.type="button";run.className="run-python";run.textContent="▶ Run";run.addEventListener("click",()=>openPythonLab(code.textContent||""));head.append(run)}head.append(copy);pre.replaceWith(panel);panel.append(head,pre);
       if(window.hljs){try{window.hljs.highlightElement(code)}catch{}}
     });
   }catch{target.textContent=raw}
@@ -200,9 +212,62 @@ $("guestBtn").addEventListener("click",async()=>{showError("authError","");$("gu
 document.querySelectorAll("[data-prompt]").forEach(b=>b.addEventListener("click",()=>{$("prompt").value=b.dataset.prompt;$("prompt").focus()}));
 $("signOutBtn").addEventListener("click",async()=>{await client.auth.signOut();session=null;isGuest=false;currentConversation=null;memories=[];settings=null;$("authOverlay").classList.remove("hidden");showWelcome();renderMessages([])});
 $("panelClose").addEventListener("click",()=>$("panelOverlay").classList.add("hidden"));
+$("pythonLabBtn").addEventListener("click",()=>openPythonLab());
+$("pythonCloseBtn").addEventListener("click",()=>$("pythonOverlay").classList.add("hidden"));
+$("pythonResetBtn").addEventListener("click",()=>{$("pythonCode").value=defaultPythonCode;clearPythonOutput();});
+$("pythonClearBtn").addEventListener("click",clearPythonOutput);
+$("pythonRunBtn").addEventListener("click",runPythonCode);
+$("pythonStopBtn").addEventListener("click",()=>stopPython("Stopped by you."));
 $("memoryBtn").addEventListener("click",()=>openPanel("memories"));
 $("settingsBtn").addEventListener("click",()=>openPanel("settings"));
-async function openPanel(mode){
+
+let pythonWorker=null, pythonRunId=0, pythonTimer=null, pythonLoadTimer=null, pythonOutputLength=0;
+const defaultPythonCode = 'print("Hello from Veyro!")\nfor number in range(1, 6):\n    print(number)';
+function clearPythonOutput(){ $("pythonOutput").textContent=""; pythonOutputLength=0; }
+function appendPythonOutput(text,kind="out"){
+ const out=$("pythonOutput");if(out.textContent==="Output will appear here.")out.textContent="";
+ const remaining=20000-pythonOutputLength;if(remaining<=0)return;
+ const clipped=String(text??"").slice(0,remaining);pythonOutputLength+=clipped.length;
+ const span=document.createElement("span");span.className=kind;span.textContent=clipped;out.append(span);
+ if(pythonOutputLength>=20000)out.append(document.createTextNode("\n[Output capped at 20,000 characters.]"));
+ out.scrollTop=out.scrollHeight;
+}
+function setPythonBusy(value){$("pythonRunBtn").disabled=value;$("pythonStopBtn").disabled=!value;$("pythonCode").disabled=value;}
+function stopPython(message="Execution stopped."){
+ if(pythonTimer)clearTimeout(pythonTimer);if(pythonLoadTimer)clearTimeout(pythonLoadTimer);pythonTimer=null;pythonLoadTimer=null;
+ if(pythonWorker){pythonWorker.terminate();pythonWorker=null;}
+ setPythonBusy(false);$("pythonStatus").textContent=message;
+}
+function openPythonLab(code){if(typeof code==="string")$("pythonCode").value=code;$("pythonOverlay").classList.remove("hidden");$("pythonStatus").textContent="Ready · runs in your browser";}
+function runPythonCode(){
+ const code=$("pythonCode").value;
+ if(!code.trim()){clearPythonOutput();appendPythonOutput("Type some Python code first.\n","sys");return;}
+ if(code.length>12000){appendPythonOutput("Code is too long. Limit: 12,000 characters.\n","err");return;}
+ stopPython("Preparing Python…");clearPythonOutput();setPythonBusy(true);
+ const runId=++pythonRunId;let hasStarted=false;
+ try{pythonWorker=new Worker(new URL("./python-worker.js",document.baseURI));}
+ catch(error){setPythonBusy(false);appendPythonOutput("Could not start the Python worker: "+error.message+"\n","err");$("pythonStatus").textContent="Worker failed";return;}
+ pythonWorker.onmessage=(event)=>{
+  const msg=event.data||{};if(msg.runId!==runId)return;
+  if(msg.type==="status"){
+   $("pythonStatus").textContent=msg.text||"Running…";
+   if(msg.text==="Running…"){hasStarted=true;if(pythonLoadTimer)clearTimeout(pythonLoadTimer);pythonLoadTimer=null;pythonTimer=setTimeout(()=>{stopPython("Timed out after 8 seconds.");appendPythonOutput("\nExecution stopped: time limit reached (8 seconds).\n","err");},8000);}
+  }else if(msg.type==="stdout")appendPythonOutput(msg.text,"out");
+  else if(msg.type==="stderr")appendPythonOutput(msg.text,"err");
+  else if(msg.type==="error"){
+   if(pythonTimer)clearTimeout(pythonTimer);if(pythonLoadTimer)clearTimeout(pythonLoadTimer);pythonTimer=null;pythonLoadTimer=null;
+   appendPythonOutput((msg.text||"Python error")+"\n","err");setPythonBusy(false);$("pythonStatus").textContent="Finished with an error";
+  }else if(msg.type==="done"){
+   if(pythonTimer)clearTimeout(pythonTimer);if(pythonLoadTimer)clearTimeout(pythonLoadTimer);pythonTimer=null;pythonLoadTimer=null;
+   setPythonBusy(false);$("pythonStatus").textContent="Finished successfully";
+   if(!pythonOutputLength)appendPythonOutput("Program finished with no output.\n","sys");
+  }
+ };
+ pythonWorker.onerror=(event)=>{stopPython("Python worker error.");appendPythonOutput((event.message||"Worker failed to load")+"\n","err");};
+ pythonLoadTimer=setTimeout(()=>{if(!hasStarted){stopPython("Python took too long to load.");appendPythonOutput("Could not load Python. Check your connection and try again.\n","err");}},60000);
+ pythonWorker.postMessage({type:"run",runId,code});
+}
+\nasync function openPanel(mode){
  if(!session)return;panelMode=mode;showError("panelError","");
  $("panelTitle").textContent=mode==="memories"?"Memories":"Personality";
  $("panelDescription").textContent=mode==="memories"?"Things Veyro can use as context. You can add or delete them whenever you want.":"Adjust how Veyro talks. This affects future replies.";
