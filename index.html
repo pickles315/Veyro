@@ -1,0 +1,184 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<meta name="theme-color" content="#101114">
+<title>Veyro</title>
+<style>
+:root{color-scheme:dark;--bg:#101114;--panel:#17191e;--panel2:#1d2027;--line:#2b2e37;--text:#f0f1f5;--muted:#9297a5;--accent:#c4f06b;--accentInk:#17200b;--danger:#ff8c8c}
+*{box-sizing:border-box}body{margin:0;background:var(--bg);color:var(--text);font:15px/1.5 Inter,ui-sans-serif,system-ui,-apple-system,BlinkMacSystemFont,"Segoe UI",sans-serif;height:100dvh}button,input,textarea{font:inherit}button{cursor:pointer;border:1px solid var(--line);border-radius:12px;padding:10px 13px;background:var(--panel2);color:var(--text);transition:background .15s,border-color .15s}button:hover{border-color:#555b68}button:disabled{opacity:.5;cursor:not-allowed}.primary{background:var(--accent);color:var(--accentInk);border-color:var(--accent);font-weight:750}.primary:hover{background:#d3ff80}.quiet{background:transparent}.app{height:100dvh;display:grid;grid-template-columns:260px minmax(0,1fr);max-width:1600px;margin:auto}.sidebar{background:#131519;border-right:1px solid var(--line);display:flex;flex-direction:column;padding:18px 13px;gap:12px;min-height:0}.brand{display:flex;align-items:center;gap:11px;padding:4px 8px 16px}.mark{width:34px;height:34px;border-radius:12px;background:var(--accent);color:var(--accentInk);display:grid;place-items:center;font-weight:900;font-size:19px}.brandname{font-weight:800;letter-spacing:-.04em;font-size:20px}.tiny{font-size:12px;color:var(--muted)}.sideactions{display:grid;gap:8px}.sideactions button{text-align:left}.section-label{font-size:11px;text-transform:uppercase;letter-spacing:.12em;color:var(--muted);padding:10px 8px 3px}.history{overflow:auto;display:grid;align-content:start;gap:4px;min-height:0}.history button{background:transparent;border-color:transparent;text-align:left;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;padding:9px 10px}.history button.active,.history button:hover{background:var(--panel2);border-color:var(--line)}.sidebottom{margin-top:auto;display:grid;gap:8px}.userline{display:flex;align-items:center;gap:9px;padding:8px}.avatar{width:30px;height:30px;border-radius:50%;background:#292e37;color:var(--accent);display:grid;place-items:center;font-weight:800}.usertext{min-width:0;overflow:hidden;text-overflow:ellipsis}.main{display:flex;flex-direction:column;min-width:0;min-height:0}.topbar{height:65px;border-bottom:1px solid var(--line);display:flex;align-items:center;justify-content:space-between;padding:0 24px;gap:10px}.toplabel{font-weight:650}.status{font-size:12px;color:var(--muted);display:flex;align-items:center;gap:7px}.dot{width:7px;height:7px;border-radius:50%;background:var(--accent);display:inline-block}.chat{flex:1;overflow:auto;min-height:0;padding:28px 20px 18px}.welcome{max-width:690px;margin:10vh auto 0}.eyebrow{color:var(--accent);font-size:12px;font-weight:800;letter-spacing:.16em;text-transform:uppercase}.welcome h1{font-size:clamp(34px,5vw,54px);line-height:1.06;letter-spacing:-.06em;margin:14px 0}.welcome p{color:var(--muted);max-width:510px}.suggestions{display:flex;gap:8px;flex-wrap:wrap;margin-top:25px}.suggestions button{font-size:13px}.messages{max-width:780px;margin:0 auto;display:grid;gap:22px}.message{display:grid;grid-template-columns:32px minmax(0,1fr);gap:12px;align-items:start}.message .avatar{width:30px;height:30px}.message .body{padding-top:3px;white-space:pre-wrap;overflow-wrap:anywhere}.message .who{font-size:12px;color:var(--muted);margin-bottom:4px}.message.user .avatar{background:#303640;color:#fff}.message.assistant .avatar{background:var(--accent);color:var(--accentInk)}.composer-wrap{padding:12px 20px 18px}.composer{max-width:780px;margin:auto;border:1px solid #373b45;border-radius:18px;background:var(--panel);padding:10px;box-shadow:0 10px 40px #0002}.composer textarea{display:block;width:100%;resize:none;min-height:50px;max-height:180px;border:0;outline:0;background:transparent;color:var(--text);padding:8px;font-size:15px}.composer-bottom{display:flex;justify-content:space-between;align-items:center;gap:10px;padding:3px 2px 0 8px}.hint{font-size:11px;color:var(--muted)}.send{min-width:76px}.footnote{text-align:center;color:var(--muted);font-size:11px;margin-top:9px}.overlay{position:fixed;inset:0;background:#0009;display:grid;place-items:center;padding:18px;z-index:10}.modal{width:min(440px,100%);background:var(--panel);border:1px solid var(--line);border-radius:20px;padding:24px;box-shadow:0 25px 80px #0008}.modal h2{margin:0 0 6px;letter-spacing:-.04em}.modal p{color:var(--muted);font-size:13px}.field{display:grid;gap:6px;margin:16px 0}.field label{font-size:12px;color:var(--muted)}.field input,.field textarea{width:100%;border:1px solid var(--line);border-radius:11px;background:#101216;color:var(--text);padding:11px;outline:none}.field input:focus,.field textarea:focus{border-color:var(--accent)}.modal-actions{display:flex;gap:8px;justify-content:flex-end;flex-wrap:wrap}.error{color:var(--danger);font-size:13px;white-space:pre-wrap}.hidden{display:none!important}.memory-row{border:1px solid var(--line);border-radius:10px;padding:10px;margin:8px 0;display:flex;gap:8px;align-items:flex-start}.memory-row span{flex:1;overflow-wrap:anywhere}.memory-row button{padding:4px 8px;font-size:12px}.toast{position:fixed;bottom:18px;left:50%;transform:translateX(-50%);background:#252a31;border:1px solid var(--line);border-radius:12px;padding:10px 14px;z-index:30;max-width:90%;font-size:13px}
+@media(max-width:720px){.app{grid-template-columns:1fr}.sidebar{display:none}.topbar{height:57px;padding:0 15px}.chat{padding:18px 14px}.welcome{margin-top:9vh}.composer-wrap{padding:8px 10px 12px}.hide-mobile{display:none}}
+</style>
+</head>
+<body>
+<div id="app" class="app">
+<aside class="sidebar">
+  <div class="brand"><div class="mark">V</div><div><div class="brandname">Veyro</div><div class="tiny">your AI, your space</div></div></div>
+  <div class="sideactions"><button class="primary" id="newChat">＋ &nbsp; New conversation</button><button id="memoryBtn">◇ &nbsp; Memories</button><button id="settingsBtn">⚙ &nbsp; Personality</button></div>
+  <div class="section-label">Recent conversations</div><div class="history" id="history"></div>
+  <div class="sidebottom"><div class="userline"><div class="avatar">Y</div><div class="usertext"><div id="userLabel">Not signed in</div><div class="tiny">Veyro account</div></div></div><button class="quiet" id="signOutBtn">Sign out</button></div>
+</aside>
+<main class="main">
+  <header class="topbar"><div class="toplabel">Veyro <span class="tiny">/ chat</span></div><div class="status"><span class="dot"></span><span id="statusText">Connecting…</span></div><button id="mobileMenu" class="quiet" style="display:none">Menu</button></header>
+  <section class="chat" id="chat"><div class="welcome" id="welcome"><div class="eyebrow">VEYRO / ONLINE-ISH</div><h1>What's on your mind?</h1><p>No scripts, no corporate voice. Just a place to think things through, build stuff, or talk about whatever.</p><div class="suggestions"><button data-prompt="Help me brainstorm something weird.">Brainstorm something weird</button><button data-prompt="Let's work on a project together.">Work on a project</button><button data-prompt="Tell me something interesting.">Tell me something interesting</button></div><p class="tiny" id="setupNotice">Your chat history is saved to your account.</p></div><div class="messages hidden" id="messages"></div></section>
+  <div class="composer-wrap"><form class="composer" id="composer"><textarea id="prompt" placeholder="Message Veyro…" rows="1" maxlength="20000"></textarea><div class="composer-bottom"><span class="hint">Enter to send · Shift+Enter for a new line</span><button class="primary send" id="sendBtn" type="submit">Send ↑</button></div></form><div class="footnote">Veyro can make mistakes. Your memories stay under your control.</div></div>
+</main>
+</div>
+<div id="authOverlay" class="overlay"><div class="modal"><div class="brand" style="padding:0 0 16px"><div class="mark">V</div><div><div class="brandname">Veyro</div><div class="tiny">A fresh start.</div></div></div><h2>Get into Veyro</h2><p>Enter your email and we'll send you a sign-in link. Your conversations and memories are private to your account.</p><form id="authForm"><div class="field"><label for="email">Email address</label><input id="email" type="email" autocomplete="email" placeholder="you@example.com" required></div><div id="authError" class="error"></div><div class="modal-actions"><button class="primary" type="submit" id="authSubmit">Email me a sign-in link</button></div></form><p class="tiny">If the link doesn't arrive, check spam. Email sign-in must be enabled in your Supabase Auth settings.</p></div></div>
+<div id="panelOverlay" class="overlay hidden"><div class="modal"><h2 id="panelTitle">Memories</h2><p id="panelDescription"></p><div id="panelContent"></div><div id="panelError" class="error"></div><div class="modal-actions" style="margin-top:18px"><button id="panelClose">Close</button><button class="primary" id="panelSave">Save changes</button></div></div></div>
+<div id="toast" class="toast hidden"></div>
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2.57.0/dist/umd/supabase.min.js"></script>
+<script>
+(() => {
+const SUPABASE_URL = "https://nkcnyaioyafmcosuanlo.supabase.co";
+const SUPABASE_PUBLISHABLE_KEY = "sb_publishable_NaxhKJ6e5RUk0Str1lly-Q_GtM2vKjk";
+const CHAT_FUNCTION_URL = SUPABASE_URL + "/functions/v1/veyro-chat";
+const $ = (id) => document.getElementById(id);
+const client = window.supabase.createClient(SUPABASE_URL, SUPABASE_PUBLISHABLE_KEY, {
+  auth: { persistSession: true, autoRefreshToken: true, detectSessionInUrl: true }
+});
+let session = null, currentConversation = null, busy = false, panelMode = "memories", memories = [], settings = null;
+const welcome = $("welcome"), messagesEl = $("messages"), chatEl = $("chat");
+function toast(text){$("toast").textContent=text;$("toast").classList.remove("hidden");setTimeout(()=>$("toast").classList.add("hidden"),3000)}
+function setStatus(text){$("statusText").textContent=text}
+function escapeText(value){return String(value ?? "")}
+function showError(id, message){$(id).textContent=message || ""}
+function formatDate(value){const d=new Date(value);return isNaN(d)? "":d.toLocaleDateString(undefined,{month:"short",day:"numeric"})}
+function setBusy(value){busy=value;$("sendBtn").disabled=value;$("prompt").disabled=value;$("sendBtn").textContent=value?"Thinking…":"Send ↑"}
+function showChat(){welcome.classList.add("hidden");messagesEl.classList.remove("hidden")}
+function showWelcome(){welcome.classList.remove("hidden");messagesEl.classList.add("hidden")}
+function renderMessages(rows){
+  messagesEl.replaceChildren();
+  for(const row of rows){
+    const item=document.createElement("article");item.className="message "+row.role;
+    const avatar=document.createElement("div");avatar.className="avatar";avatar.textContent=row.role==="assistant"?"V":"Y";
+    const bodyWrap=document.createElement("div");const who=document.createElement("div");who.className="who";who.textContent=row.role==="assistant"?"Veyro":"You";
+    const body=document.createElement("div");body.className="body";body.textContent=row.content;
+    bodyWrap.append(who,body);item.append(avatar,bodyWrap);messagesEl.append(item);
+  }
+  chatEl.scrollTop=chatEl.scrollHeight;
+}
+async function loadHistory(){
+ const {data,error}=await client.from("conversations").select("id,title,updated_at").order("updated_at",{ascending:false}).limit(50);
+ if(error){toast("Couldn't load conversations: "+error.message);return}
+ const el=$("history");el.replaceChildren();
+ for(const c of data||[]){
+  const b=document.createElement("button");b.textContent=c.title||"New conversation";b.title=c.title||"New conversation";
+  if(c.id===currentConversation)b.classList.add("active");
+  b.addEventListener("click",()=>openConversation(c.id));el.append(b);
+ }
+}
+async function newConversation(){
+ const {data,error}=await client.from("conversations").insert({user_id:session.user.id,title:"New conversation"}).select("id").single();
+ if(error){toast("Couldn't create a conversation: "+error.message);return null}
+ currentConversation=data.id;renderMessages([]);showWelcome();await loadHistory();return currentConversation;
+}
+async function openConversation(id){
+ currentConversation=id;const {data,error}=await client.from("messages").select("id,role,content,created_at").eq("conversation_id",id).order("created_at",{ascending:true}).limit(200);
+ if(error){toast("Couldn't load messages: "+error.message);return}
+ if(data?.length){showChat();renderMessages(data)}else{showWelcome();renderMessages([])}
+ await loadHistory();
+}
+async function ensureConversation(){if(currentConversation)return currentConversation;return await newConversation()}
+async function loadMemoryAndSettings(){
+ const [m,s]=await Promise.all([
+  client.from("memories").select("id,content,category,updated_at").order("updated_at",{ascending:false}).limit(50),
+  client.from("user_settings").select("*").eq("user_id",session.user.id).maybeSingle()
+ ]);
+ if(m.error)toast("Memory load failed: "+m.error.message);else memories=m.data||[];
+ if(s.error)toast("Settings load failed: "+s.error.message);
+ settings=s.data||{user_id:session.user.id,display_name:"You",personality:"Casual, curious, witty, and natural. Be helpful without sounding corporate. Do not pretend to be human.",proactive_messages_enabled:false};
+}
+async function sendMessage(raw){
+ const content=raw.trim();if(!content||busy||!session)return;
+ const cid=await ensureConversation();if(!cid)return;
+ $("prompt").value="";$("prompt").style.height="auto";setBusy(true);setStatus("Thinking…");
+ const optimistic=[...messagesEl.querySelectorAll(".message")].map(el=>({role:el.classList.contains("user")?"user":"assistant",content:el.querySelector(".body")?.textContent||""}));
+ optimistic.push({role:"user",content});showChat();renderMessages(optimistic);
+ try{
+  const {data:userRow,error:userErr}=await client.from("messages").insert({conversation_id:cid,user_id:session.user.id,role:"user",content}).select("id").single();
+  if(userErr)throw userErr;
+  const title=content.length>42?content.slice(0,39)+"…":content;
+  const existingCount=optimistic.length;
+  if(existingCount<=1){await client.from("conversations").update({title,updated_at:new Date().toISOString()}).eq("id",cid)}
+  const history=optimistic.slice(-30).map(m=>({role:m.role,content:m.content}));
+  const response=await fetch(CHAT_FUNCTION_URL,{method:"POST",headers:{"Content-Type":"application/json","Authorization":"Bearer "+session.access_token,"apikey":SUPABASE_PUBLISHABLE_KEY},body:JSON.stringify({messages:history,personality:settings?.personality,memories:memories.map(m=>m.content)})});
+  const result=await response.json().catch(()=>({}));
+  if(!response.ok)throw new Error(result.error||"AI request failed ("+response.status+").");
+  if(typeof result.reply!=="string"||!result.reply.trim())throw new Error("Veyro returned an empty response.");
+  const {error:saveErr}=await client.from("messages").insert({conversation_id:cid,user_id:session.user.id,role:"assistant",content:result.reply});
+  if(saveErr)throw saveErr;
+  const finalRows=[...optimistic,{role:"assistant",content:result.reply}];renderMessages(finalRows);await loadHistory();setStatus("Ready");
+ }catch(e){
+  const err=e?.message||"Something went wrong.";
+  toast(err);
+  const current=[...optimistic,{role:"assistant",content:"I couldn't get a reply just now. "+err}];renderMessages(current);setStatus("Needs setup");
+ }finally{setBusy(false);$("prompt").focus()}
+}
+async function startSession(s){
+ session=s;$("authOverlay").classList.add("hidden");$("userLabel").textContent=s.user.email||"Your account";setStatus("Loading…");
+ const {error}=await client.from("user_settings").upsert({user_id:s.user.id},{onConflict:"user_id",ignoreDuplicates:true});
+ if(error)console.warn("Settings init:",error.message);
+ await loadMemoryAndSettings();await loadHistory();setStatus("Ready");
+ const {data}=await client.from("conversations").select("id").order("updated_at",{ascending:false}).limit(1).maybeSingle();
+ if(data?.id)await openConversation(data.id);else await newConversation();
+}
+$("authForm").addEventListener("submit",async e=>{
+ e.preventDefault();showError("authError","");$("authSubmit").disabled=true;$("authSubmit").textContent="Sending…";
+ try{const email=$("email").value.trim();const {error}=await client.auth.signInWithOtp({email,options:{emailRedirectTo:location.href.split("#")[0]}});if(error)throw error;showError("authError","Sign-in link sent. Open it from this browser to continue.");}
+ catch(err){showError("authError",err.message||"Could not send sign-in link.");}
+ finally{$("authSubmit").disabled=false;$("authSubmit").textContent="Email me a sign-in link"}
+});
+client.auth.onAuthStateChange((_event,s)=>{if(s&&!session){setTimeout(()=>startSession(s),0)}else if(!s){session=null;$("authOverlay").classList.remove("hidden");setStatus("Signed out")}});
+$("composer").addEventListener("submit",e=>{e.preventDefault();sendMessage($("prompt").value)});
+$("prompt").addEventListener("keydown",e=>{if(e.key==="Enter"&&!e.shiftKey){e.preventDefault();$("composer").requestSubmit()}});
+$("prompt").addEventListener("input",()=>{$("prompt").style.height="auto";$("prompt").style.height=Math.min($("prompt").scrollHeight,180)+"px"});
+$("newChat").addEventListener("click",async()=>{if(busy)return;currentConversation=null;renderMessages([]);showWelcome();await newConversation()});
+document.querySelectorAll("[data-prompt]").forEach(b=>b.addEventListener("click",()=>{$("prompt").value=b.dataset.prompt;$("prompt").focus()}));
+$("signOutBtn").addEventListener("click",async()=>{await client.auth.signOut();session=null;currentConversation=null;memories=[];settings=null;$("authOverlay").classList.remove("hidden");showWelcome();renderMessages([])});
+$("panelClose").addEventListener("click",()=>$("panelOverlay").classList.add("hidden"));
+$("memoryBtn").addEventListener("click",()=>openPanel("memories"));
+$("settingsBtn").addEventListener("click",()=>openPanel("settings"));
+async function openPanel(mode){
+ if(!session)return;panelMode=mode;showError("panelError","");
+ $("panelTitle").textContent=mode==="memories"?"Memories":"Personality";
+ $("panelDescription").textContent=mode==="memories"?"Things Veyro can use as context. You can add or delete them whenever you want.":"Adjust how Veyro talks. This affects future replies.";
+ $("panelSave").textContent=mode==="memories"?"Add memory":"Save personality";
+ const area=$("panelContent");area.replaceChildren();
+ if(mode==="memories"){
+  const f=document.createElement("div");f.className="field";const l=document.createElement("label");l.textContent="New memory";const t=document.createElement("textarea");t.id="newMemory";t.placeholder="Example: I'm making a Roblox parkour game.";t.rows=3;f.append(l,t);area.append(f);
+  const list=document.createElement("div");list.id="memoryList";area.append(list);renderMemoryList();
+ }else{
+  const f=document.createElement("div");f.className="field";const l=document.createElement("label");l.textContent="Personality instructions";const t=document.createElement("textarea");t.id="personalityInput";t.rows=6;t.maxLength=1500;t.value=settings?.personality||"";f.append(l,t);area.append(f);
+  const tip=document.createElement("div");tip.className="tiny";tip.textContent="Keep it to the tone and behavior you want. Avoid putting passwords or other secrets here.";area.append(tip);
+ }
+ $("panelOverlay").classList.remove("hidden");
+}
+function renderMemoryList(){
+ const list=$("memoryList");if(!list)return;list.replaceChildren();
+ if(!memories.length){const p=document.createElement("p");p.className="tiny";p.textContent="No saved memories yet.";list.append(p);return}
+ for(const m of memories){const row=document.createElement("div");row.className="memory-row";const s=document.createElement("span");s.textContent=m.content;const b=document.createElement("button");b.textContent="Delete";b.addEventListener("click",async()=>{const {error}=await client.from("memories").delete().eq("id",m.id);if(error){showError("panelError",error.message);return}memories=memories.filter(x=>x.id!==m.id);renderMemoryList()});row.append(s,b);list.append(row)}
+}
+$("panelSave").addEventListener("click",async()=>{
+ if(!session)return;showError("panelError","");
+ if(panelMode==="memories"){
+  const content=$("newMemory")?.value.trim();if(!content){showError("panelError","Type a memory first.");return}
+  const {data,error}=await client.from("memories").insert({user_id:session.user.id,content,category:"general"}).select("id,content,category,updated_at").single();
+  if(error){showError("panelError",error.message);return}memories.unshift(data);$("newMemory").value="";renderMemoryList();toast("Memory saved.");
+ }else{
+  const personality=$("personalityInput").value.trim();if(!personality){showError("panelError","Personality can't be empty.");return}
+  const {data,error}=await client.from("user_settings").upsert({user_id:session.user.id,personality,updated_at:new Date().toISOString()}).select("*").single();
+  if(error){showError("panelError",error.message);return}settings=data;toast("Personality saved.");
+ }
+});
+(async()=>{
+ if(!window.supabase){showError("authError","Supabase client didn't load. Check your connection and refresh.");return}
+ const {data:{session:s},error}=await client.auth.getSession();
+ if(error)console.error(error);
+ if(s)await startSession(s);else setStatus("Sign in to start");
+})();
+})();
+</script>
+</body>
+</html>
