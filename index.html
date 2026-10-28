@@ -213,28 +213,26 @@ async function loadMemoryAndSettings(){
 async function sendMessage(raw){
  const content=raw.trim();if(!content||busy||!session)return;
  const cid=await ensureConversation();if(!cid)return;
- $("prompt").value="";$("prompt").style.height="auto";setBusy(true);setStatus("Thinking…");
- const optimistic=[...messagesEl.querySelectorAll(".message")].map(el=>({role:el.classList.contains("user")?"user":"assistant",content:el.querySelector(".body")?.textContent||""}));
- optimistic.push({role:"user",content});showChat();renderMessages(optimistic);
+ $("prompt").value="";$("prompt").style.height="auto";setBusy(true);setStatus("Veyro is thinking…");
+ const optimistic=[...messagesEl.querySelectorAll(".message")].map(el=>({role:el.classList.contains("user")?"user":"assistant",content:el.dataset.raw||el.querySelector(".body")?.textContent||""}));
+ optimistic.push({role:"user",content});showChat();renderMessages([...optimistic,{role:"assistant",content:"Thinking…"}]);
+ const liveBody=messagesEl.querySelector(".message.assistant:last-child .body");
+ if(liveBody){liveBody.textContent="Thinking…";liveBody.style.color="var(--muted)";liveBody.style.fontStyle="italic";}
+ let partialReply="";
  try{
   if(!isGuest){
    const {error:userErr}=await client.from("messages").insert({conversation_id:cid,user_id:session.user.id,role:"user",content}).select("id").single();
    if(userErr)throw userErr;
    const title=content.length>42?content.slice(0,39)+"…":content;
-   const existingCount=optimistic.length;
-   if(existingCount<=1){await client.from("conversations").update({title,updated_at:new Date().toISOString()}).eq("id",cid)}
+   if(optimistic.length<=1){await client.from("conversations").update({title,updated_at:new Date().toISOString()}).eq("id",cid)}
   }
-  // Release 03: an explicit "remember that..." request can save a memory.
-  // Never auto-save likely credentials or highly sensitive identifiers.
   const rememberMatch=content.match(/^\s*(?:veyro[,! ]*)?(?:please\s+)?remember(?:\s+that|\s*:)?\s+([\s\S]{3,2000})\s*$/i);
   if(rememberMatch){
    const memoryContent=rememberMatch[1].trim();
    const sensitive=/(?:password|passphrase|api[ -]?key|access token|secret key|credit card|social security|\bssn\b|recovery code)/i.test(memoryContent);
-   if(isGuest){
-    toast("Guest memories aren't saved. Sign in to keep this for later.");
-   }else if(sensitive){
-    toast("I didn't save that because it looks like sensitive information.");
-   }else{
+   if(isGuest)toast("Guest memories aren't saved. Sign in to keep this for later.");
+   else if(sensitive)toast("I didn't save that because it looks like sensitive information.");
+   else{
     const duplicate=memories.some(m=>m.content.trim().toLowerCase()===memoryContent.toLowerCase());
     if(!duplicate){
      const {data:memoryRow,error:memoryError}=await client.from("memories").insert({user_id:session.user.id,content:memoryContent,category:"general"}).select("id,content,category,updated_at").single();
@@ -243,17 +241,50 @@ async function sendMessage(raw){
     }else toast("I already have that saved.");
    }
   }
-  const history=optimistic.slice(-30).map(m=>({role:m.role,content:m.content}));
-  const response=await fetch(CHAT_FUNCTION_URL,{method:"POST",headers:{"Content-Type":"application/json","Authorization":"Bearer "+session.access_token,"apikey":SUPABASE_PUBLISHABLE_KEY},body:JSON.stringify({messages:history,personality:[buildMode?"Build mode is enabled. Help the user build and debug projects. Be practical and beginner-friendly: provide complete working code when requested, explain exactly where to put it, identify likely causes of errors, and avoid vague advice. Do not claim code was tested unless it actually was.":"",settings?.personality] .filter(Boolean).join("\n\n"),memories:memories.map(m=>m.content)})});
-  const result=await response.json().catch(()=>({}));
-  if(!response.ok)throw new Error(result.error||"AI request failed ("+response.status+").");
-  if(typeof result.reply!=="string"||!result.reply.trim())throw new Error("Veyro returned an empty response.");
-  if(!isGuest){const {error:saveErr}=await client.from("messages").insert({conversation_id:cid,user_id:session.user.id,role:"assistant",content:result.reply});if(saveErr)throw saveErr}
-  const finalRows=[...optimistic,{role:"assistant",content:result.reply}];renderMessages(finalRows);if(!isGuest)await loadHistory();setStatus("Ready");
+  const history=optimistic.slice(-20).map(m=>({role:m.role,content:m.content}));
+  const response=await fetch(CHAT_FUNCTION_URL,{method:"POST",headers:{"Content-Type":"application/json","Authorization":"Bearer "+session.access_token,"apikey":SUPABASE_PUBLISHABLE_KEY},body:JSON.stringify({messages:history,personality:[buildMode?"Build mode is enabled. Help the user build and debug projects. Be practical and beginner-friendly: provide complete working code when requested, explain exactly where to put it, identify likely causes of errors, and avoid vague advice. Do not claim code was tested unless it actually was.":"",settings?.personality].filter(Boolean).join("\n\n"),memories:memories.map(m=>m.content),stream:true})});
+  if(!response.ok){
+   const result=await response.json().catch(()=>({}));
+   throw new Error(result.error||"AI request failed ("+response.status+").");
+  }
+  if(!response.body)throw new Error("Your browser doesn't support streamed replies. Refresh and try again.");
+  const reader=response.body.getReader();
+  const decoder=new TextDecoder();
+  let buffer="";
+  const paintPartial=()=>{
+   const bodyEl=messagesEl.querySelector(".message.assistant:last-child .body");
+   if(bodyEl){bodyEl.style.color="";bodyEl.style.fontStyle="";bodyEl.style.whiteSpace="pre-wrap";bodyEl.textContent=partialReply;chatEl.scrollTop=chatEl.scrollHeight;}
+   setStatus("Veyro is typing…");
+  };
+  const handleSseLine=(line)=>{
+   if(!line.startsWith("data:"))return;
+   const payload=line.slice(5).trim();
+   if(!payload||payload==="[DONE]")return;
+   let eventData;
+   try{eventData=JSON.parse(payload)}catch{return}
+   if(eventData.error)throw new Error(eventData.error.message||"The AI provider stopped the stream.");
+   const delta=eventData.choices?.[0]?.delta?.content;
+   if(typeof delta==="string"&&delta){partialReply+=delta;paintPartial();}
+   else if(Array.isArray(delta)){for(const part of delta){if(typeof part?.text==="string")partialReply+=part.text;}paintPartial();}
+  };
+  while(true){
+   const {value,done}=await reader.read();
+   if(done)break;
+   buffer+=decoder.decode(value,{stream:true});
+   const lines=buffer.split(/\r?\n/);buffer=lines.pop()||"";
+   for(const line of lines)handleSseLine(line);
+  }
+  buffer+=decoder.decode();
+  if(buffer.trim())handleSseLine(buffer.trim());
+  const reply=partialReply.trim().replace(/^(?:(?:user\s+)?safety\s*:\s*(?:safe|unsafe|unknown)\s*|(?:response\s+)?safety\s*:\s*(?:safe|unsafe|unknown)\s*)+/i,"").trim();
+  if(!reply)throw new Error("Veyro returned an empty response. Please try again.");
+  if(!isGuest){const {error:saveErr}=await client.from("messages").insert({conversation_id:cid,user_id:session.user.id,role:"assistant",content:reply});if(saveErr)throw saveErr}
+  renderMessages([...optimistic,{role:"assistant",content:reply}]);if(!isGuest)await loadHistory();setStatus("Ready");
  }catch(e){
   const err=e?.message||"Something went wrong.";
   toast(err);
-  const current=[...optimistic,{role:"assistant",content:"I couldn't get a reply just now. "+err}];renderMessages(current);setStatus("Needs setup");
+  const message=partialReply.trim()?partialReply+"\n\n[Reply interrupted: "+err+"]":"I couldn't get a reply just now. "+err;
+  renderMessages([...optimistic,{role:"assistant",content:message}]);setStatus("Needs setup");
  }finally{setBusy(false);$("prompt").focus()}
 }
 async function startSession(s){
