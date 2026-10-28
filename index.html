@@ -243,9 +243,9 @@ function runPythonCode(){
  const code=$("pythonCode").value;
  if(!code.trim()){clearPythonOutput();appendPythonOutput("Type some Python code first.\n","sys");return;}
  if(code.length>12000){appendPythonOutput("Code is too long. Limit: 12,000 characters.\n","err");return;}
- stopPython("Preparing Python…");clearPythonOutput();setPythonBusy(true);
+ if(pythonTimer)clearTimeout(pythonTimer);if(pythonLoadTimer)clearTimeout(pythonLoadTimer);pythonTimer=null;pythonLoadTimer=null;clearPythonOutput();setPythonBusy(true);
  const runId=++pythonRunId;let hasStarted=false;
- try{pythonWorker=new Worker(new URL("./python-worker.js",document.baseURI));}
+ try{if(!pythonWorker)pythonWorker=new Worker(new URL("./python-worker.js",document.baseURI));}
  catch(error){setPythonBusy(false);appendPythonOutput("Could not start the Python worker: "+error.message+"\n","err");$("pythonStatus").textContent="Worker failed";return;}
  pythonWorker.onmessage=(event)=>{
   const msg=event.data||{};if(msg.runId!==runId)return;
