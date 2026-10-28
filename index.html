@@ -65,19 +65,32 @@
 <div id="pythonOverlay" class="overlay hidden"><section class="modal python-modal" role="dialog" aria-modal="true" aria-labelledby="pythonTitle"><h2 id="pythonTitle">Python lab</h2><p>Run Python in your browser. Your code is not sent to Veyro's AI server. Python runs in a separate browser worker with a time limit; this is for learning and small scripts, not a fully isolated production sandbox.</p><div class="python-toolbar"><span class="tiny" id="pythonStatus">Ready · Python loads on first run</span><div class="python-actions"><button id="pythonStopBtn" disabled>Stop</button><button id="pythonResetBtn">Reset</button><button class="primary" id="pythonRunBtn">▶ Run Python</button></div></div><label class="tiny" for="pythonCode">CODE</label><textarea id="pythonCode" class="python-editor" spellcheck="false" autocapitalize="off" autocomplete="off">print("Hello from Veyro!")
 for number in range(1, 6):
     print(number)</textarea><div class="python-toolbar"><strong>Output</strong><button id="pythonClearBtn" class="quiet">Clear output</button></div><pre id="pythonOutput" class="python-terminal" aria-live="polite">Output will appear here.</pre><div class="modal-actions" style="margin-top:14px"><button id="pythonCloseBtn">Close</button></div></section></div><div id="toast" class="toast hidden"></div>
-<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2.57.0/dist/umd/supabase.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2.57.0/dist/umd/supabase.min.js" onerror="this.onerror=null;this.src='https://unpkg.com/@supabase/supabase-js@2.57.0/dist/umd/supabase.min.js';"></script>
 <script>
-/* If the primary CDN is blocked, try the same Supabase library from unpkg. */
-if (!window.supabase) {
-  document.write('<script src="https://unpkg.com/@supabase/supabase-js@2.57.0/dist/umd/supabase.min.js"><\/script>');
-}
-/* Keep startup errors visible for people who cannot open developer tools. */
 window.addEventListener("error", function (event) {
   const box = document.getElementById("authError");
-  if (box && !window.supabase) {
-    box.textContent = "Veyro couldn't load its sign-in library. Refresh the page; if this keeps happening, the browser or network may be blocking both CDNs.";
-  }
+  if (!box) return;
+  const message = event && event.message ? event.message : "A page script failed to load.";
+  box.textContent = "Veyro startup error: " + message + ". Refresh the page and tell me this exact message if it repeats.";
 });
+window.addEventListener("unhandledrejection", function (event) {
+  const box = document.getElementById("authError");
+  if (box) box.textContent = "Veyro startup error: " + (event.reason && event.reason.message ? event.reason.message : String(event.reason || "unknown error")) + ". Refresh the page and tell me this message if it repeats.";
+});
+document.addEventListener("click", function (event) {
+  const target = event.target && event.target.closest ? event.target.closest("#guestBtn, #authSubmit") : null;
+  if (!target) return;
+  const guest = target.id === "guestBtn";
+  const original = guest ? "Try without an account" : "Email me a sign-in link";
+  target.textContent = guest ? "Starting guest session…" : "Sending link…";
+  window.setTimeout(function () {
+    const overlay = document.getElementById("authOverlay");
+    if (overlay && !overlay.classList.contains("hidden") && target.textContent === (guest ? "Starting guest session…" : "Sending link…")) {
+      target.textContent = original;
+      document.getElementById("authError").textContent = "Veyro's sign-in code did not finish. Refresh the page. If it happens again, tell me.";
+    }
+  }, 10000);
+}, true);
 </script>
 <script src="https://cdn.jsdelivr.net/npm/marked@15.0.7/marked.min.js"></script>
 <script src="https://cdn.jsdelivr.net/npm/dompurify@3.2.6/dist/purify.min.js"></script>
