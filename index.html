@@ -253,7 +253,13 @@ async function sendMessage(raw){
   let buffer="";
   const paintPartial=()=>{
    const bodyEl=messagesEl.querySelector(".message.assistant:last-child .body");
-   if(bodyEl){bodyEl.style.color="";bodyEl.style.fontStyle="";bodyEl.style.whiteSpace="pre-wrap";bodyEl.textContent=partialReply;chatEl.scrollTop=chatEl.scrollHeight;}
+   if(bodyEl){
+    bodyEl.style.color="";bodyEl.style.fontStyle="";bodyEl.style.whiteSpace="";
+    // Render Markdown during streaming too, so bold, lists, headings and code
+    // are readable before the model has finished its full answer.
+    renderMarkdown(bodyEl,partialReply);
+    chatEl.scrollTop=chatEl.scrollHeight;
+   }
    setStatus("Veyro is typing…");
   };
   const handleSseLine=(line)=>{
