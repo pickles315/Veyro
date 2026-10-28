@@ -9,7 +9,31 @@
 :root{color-scheme:dark;--bg:#101114;--panel:#17191e;--panel2:#1d2027;--line:#2b2e37;--text:#f0f1f5;--muted:#9297a5;--accent:#c4f06b;--accentInk:#17200b;--danger:#ff8c8c}
 *{box-sizing:border-box}body{margin:0;background:var(--bg);color:var(--text);font:15px/1.5 Inter,ui-sans-serif,system-ui,-apple-system,BlinkMacSystemFont,"Segoe UI",sans-serif;height:100dvh}button,input,textarea{font:inherit}button{cursor:pointer;border:1px solid var(--line);border-radius:12px;padding:10px 13px;background:var(--panel2);color:var(--text);transition:background .15s,border-color .15s}button:hover{border-color:#555b68}button:disabled{opacity:.5;cursor:not-allowed}.primary{background:var(--accent);color:var(--accentInk);border-color:var(--accent);font-weight:750}.primary:hover{background:#d3ff80}.quiet{background:transparent}.app{height:100dvh;display:grid;grid-template-columns:260px minmax(0,1fr);max-width:1600px;margin:auto}.sidebar{background:#131519;border-right:1px solid var(--line);display:flex;flex-direction:column;padding:18px 13px;gap:12px;min-height:0}.brand{display:flex;align-items:center;gap:11px;padding:4px 8px 16px}.mark{width:34px;height:34px;border-radius:12px;background:var(--accent);color:var(--accentInk);display:grid;place-items:center;font-weight:900;font-size:19px}.brandname{font-weight:800;letter-spacing:-.04em;font-size:20px}.tiny{font-size:12px;color:var(--muted)}.sideactions{display:grid;gap:8px}.sideactions button{text-align:left}.section-label{font-size:11px;text-transform:uppercase;letter-spacing:.12em;color:var(--muted);padding:10px 8px 3px}.history{overflow:auto;display:grid;align-content:start;gap:4px;min-height:0}.history button{background:transparent;border-color:transparent;text-align:left;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;padding:9px 10px}.history button.active,.history button:hover{background:var(--panel2);border-color:var(--line)}.sidebottom{margin-top:auto;display:grid;gap:8px}.userline{display:flex;align-items:center;gap:9px;padding:8px}.avatar{width:30px;height:30px;border-radius:50%;background:#292e37;color:var(--accent);display:grid;place-items:center;font-weight:800}.usertext{min-width:0;overflow:hidden;text-overflow:ellipsis}.main{display:flex;flex-direction:column;min-width:0;min-height:0}.topbar{height:65px;border-bottom:1px solid var(--line);display:flex;align-items:center;justify-content:space-between;padding:0 24px;gap:10px}.toplabel{font-weight:650}.status{font-size:12px;color:var(--muted);display:flex;align-items:center;gap:7px}.dot{width:7px;height:7px;border-radius:50%;background:var(--accent);display:inline-block}.chat{flex:1;overflow:auto;min-height:0;padding:28px 20px 18px}.welcome{max-width:690px;margin:10vh auto 0}.eyebrow{color:var(--accent);font-size:12px;font-weight:800;letter-spacing:.16em;text-transform:uppercase}.welcome h1{font-size:clamp(34px,5vw,54px);line-height:1.06;letter-spacing:-.06em;margin:14px 0}.welcome p{color:var(--muted);max-width:510px}.suggestions{display:flex;gap:8px;flex-wrap:wrap;margin-top:25px}.suggestions button{font-size:13px}.messages{max-width:780px;margin:0 auto;display:grid;gap:22px}.message{display:grid;grid-template-columns:32px minmax(0,1fr);gap:12px;align-items:start}.message .avatar{width:30px;height:30px}.message .body{padding-top:3px;white-space:pre-wrap;overflow-wrap:anywhere}.message .who{font-size:12px;color:var(--muted);margin-bottom:4px}.message.user .avatar{background:#303640;color:#fff}.message.assistant .avatar{background:var(--accent);color:var(--accentInk)}.composer-wrap{padding:12px 20px 18px}.composer{max-width:780px;margin:auto;border:1px solid #373b45;border-radius:18px;background:var(--panel);padding:10px;box-shadow:0 10px 40px #0002}.composer textarea{display:block;width:100%;resize:none;min-height:50px;max-height:180px;border:0;outline:0;background:transparent;color:var(--text);padding:8px;font-size:15px}.composer-bottom{display:flex;justify-content:space-between;align-items:center;gap:10px;padding:3px 2px 0 8px}.hint{font-size:11px;color:var(--muted)}.send{min-width:76px}.footnote{text-align:center;color:var(--muted);font-size:11px;margin-top:9px}.overlay{position:fixed;inset:0;background:#0009;display:grid;place-items:center;padding:18px;z-index:10}.modal{width:min(440px,100%);background:var(--panel);border:1px solid var(--line);border-radius:20px;padding:24px;box-shadow:0 25px 80px #0008}.modal h2{margin:0 0 6px;letter-spacing:-.04em}.modal p{color:var(--muted);font-size:13px}.field{display:grid;gap:6px;margin:16px 0}.field label{font-size:12px;color:var(--muted)}.field input,.field textarea{width:100%;border:1px solid var(--line);border-radius:11px;background:#101216;color:var(--text);padding:11px;outline:none}.field input:focus,.field textarea:focus{border-color:var(--accent)}.modal-actions{display:flex;gap:8px;justify-content:flex-end;flex-wrap:wrap}.error{color:var(--danger);font-size:13px;white-space:pre-wrap}.hidden{display:none!important}.memory-row{border:1px solid var(--line);border-radius:10px;padding:10px;margin:8px 0;display:flex;gap:8px;align-items:flex-start}.memory-row span{flex:1;overflow-wrap:anywhere}.memory-row button{padding:4px 8px;font-size:12px}.toast{position:fixed;bottom:18px;left:50%;transform:translateX(-50%);background:#252a31;border:1px solid var(--line);border-radius:12px;padding:10px 14px;z-index:30;max-width:90%;font-size:13px}
 @media(max-width:720px){.app{grid-template-columns:1fr}.sidebar{display:none}.topbar{height:57px;padding:0 15px}.chat{padding:18px 14px}.welcome{margin-top:9vh}.composer-wrap{padding:8px 10px 12px}.hide-mobile{display:none}}
-</style>
+
+/* Release 01: readable Markdown, code panels, and copy controls */
+.message .body{white-space:normal;min-width:0;line-height:1.7}
+.message .body p{margin:0 0 12px}.message .body p:last-child{margin-bottom:0}
+.message .body h1,.message .body h2,.message .body h3,.message .body h4{line-height:1.25;letter-spacing:-.025em;margin:20px 0 9px}
+.message .body h1{font-size:1.55em}.message .body h2{font-size:1.3em}.message .body h3{font-size:1.12em}
+.message .body ul,.message .body ol{padding-left:24px;margin:8px 0 14px}
+.message .body li{margin:4px 0}.message .body blockquote{border-left:3px solid var(--accent);margin:12px 0;padding:4px 0 4px 14px;color:#c2c6d0}
+.message .body a{color:var(--accent);text-decoration:underline;text-underline-offset:3px}
+.message .body hr{border:0;border-top:1px solid var(--line);margin:16px 0}
+.message .body :not(pre)>code{background:#292d35;border:1px solid #383d47;border-radius:6px;padding:2px 5px;font: .9em ui-monospace,SFMono-Regular,Consolas,monospace;overflow-wrap:anywhere}
+.message .body pre{margin:0;overflow:auto;padding:15px;background:#101216}
+.code-panel{margin:14px 0;border:1px solid #343842;border-radius:12px;overflow:hidden;background:#101216;max-width:100%}
+.code-panel-head{display:flex;align-items:center;justify-content:space-between;gap:12px;padding:8px 11px;background:#1b1e24;border-bottom:1px solid #343842;color:#aeb4c0;font-size:11px;text-transform:uppercase;letter-spacing:.08em}
+.code-panel-head button,.message-actions button{font-size:12px;padding:5px 9px;border-radius:8px;background:#252932;white-space:nowrap}
+.code-panel pre{margin:0;overflow:auto;padding:15px;background:#101216}
+.code-panel pre code{font:13px/1.65 ui-monospace,SFMono-Regular,Consolas,"Liberation Mono",monospace;white-space:pre;tab-size:4}
+.message-actions{display:flex;justify-content:flex-end;margin-top:8px}
+.message-actions button{color:#c6cbd5;background:transparent;border-color:var(--line)}
+.message-actions button:hover,.code-panel-head button:hover{color:var(--text);background:#303540}
+.message .body table{display:block;max-width:100%;overflow:auto;border-collapse:collapse;margin:12px 0}
+.message .body th,.message .body td{border:1px solid var(--line);padding:7px 10px;text-align:left;min-width:80px}
+.message .body th{background:#22262e}
+.message .body img{max-width:100%;height:auto;border-radius:8px}
+\n</style>
 </head>
 <body>
 <div id="app" class="app">
@@ -28,7 +52,11 @@
 <div id="authOverlay" class="overlay"><div class="modal"><div class="brand" style="padding:0 0 16px"><div class="mark">V</div><div><div class="brandname">Veyro</div><div class="tiny">A fresh start.</div></div></div><h2>Get into Veyro</h2><p>Sign in to keep your conversations and memories, or try Veyro without an account. Guest chats are not saved.</p><form id="authForm"><div class="field"><label for="email">Email address</label><input id="email" type="email" autocomplete="email" placeholder="you@example.com" required></div><div id="authError" class="error"></div><div class="modal-actions"><button class="primary" type="submit" id="authSubmit">Email me a sign-in link</button></div></form><button id="guestBtn" class="quiet" style="width:100%;margin-top:10px">Try without an account</button><p class="tiny">If a link expires, request a new one. Email sign-in must be enabled in Supabase Auth settings.</p></div></div>
 <div id="panelOverlay" class="overlay hidden"><div class="modal"><h2 id="panelTitle">Memories</h2><p id="panelDescription"></p><div id="panelContent"></div><div id="panelError" class="error"></div><div class="modal-actions" style="margin-top:18px"><button id="panelClose">Close</button><button class="primary" id="panelSave">Save changes</button></div></div></div>
 <div id="toast" class="toast hidden"></div>
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/highlight.js@11.11.1/styles/github-dark.min.css">
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2.57.0/dist/umd/supabase.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/marked@15.0.7/marked.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/dompurify@3.2.6/dist/purify.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/highlight.js@11.11.1/lib/common.min.js"></script>
 <script>
 (() => {
 const SUPABASE_URL = "https://nkcnyaioyafmcosuanlo.supabase.co";
@@ -48,14 +76,42 @@ function formatDate(value){const d=new Date(value);return isNaN(d)? "":d.toLocal
 function setBusy(value){busy=value;$("sendBtn").disabled=value;$("prompt").disabled=value;$("sendBtn").textContent=value?"Thinking…":"Send ↑"}
 function showChat(){welcome.classList.add("hidden");messagesEl.classList.remove("hidden")}
 function showWelcome(){welcome.classList.remove("hidden");messagesEl.classList.add("hidden")}
+function renderMarkdown(target, source){
+  const raw=String(source??"");
+  if(!window.marked||!window.DOMPurify){target.textContent=raw;return}
+  try{
+    target.innerHTML=window.DOMPurify.sanitize(window.marked.parse(raw,{gfm:true,breaks:true}),{USE_PROFILES:{html:true}});
+    target.querySelectorAll("a").forEach(a=>{a.target="_blank";a.rel="noopener noreferrer"});
+    target.querySelectorAll("pre > code").forEach(code=>{
+      const pre=code.parentElement;
+      if(pre.parentElement?.classList.contains("code-panel"))return;
+      const langClass=[...code.classList].find(x=>x.startsWith("language-"));
+      const language=langClass?langClass.slice(9).toUpperCase():"CODE";
+      const panel=document.createElement("div");panel.className="code-panel";
+      const head=document.createElement("div");head.className="code-panel-head";
+      const label=document.createElement("span");label.textContent=language;
+      const copy=document.createElement("button");copy.type="button";copy.textContent="Copy code";copy.className="copy-code";
+      copy.addEventListener("click",async()=>{const ok=await copyText(code.textContent||"");if(ok){copy.textContent="Copied!";setTimeout(()=>copy.textContent="Copy code",1200)}else toast("Couldn't copy code automatically.")});
+      head.append(label,copy);pre.replaceWith(panel);panel.append(head,pre);
+      if(window.hljs){try{window.hljs.highlightElement(code)}catch{}}
+    });
+  }catch{target.textContent=raw}
+}
+async function copyText(value){
+  try{await navigator.clipboard.writeText(value);return true}catch{
+    try{const t=document.createElement("textarea");t.value=value;t.style.position="fixed";t.style.opacity="0";document.body.append(t);t.select();const ok=document.execCommand("copy");t.remove();return ok}catch{return false}
+  }
+}
 function renderMessages(rows){
   messagesEl.replaceChildren();
   for(const row of rows){
-    const item=document.createElement("article");item.className="message "+row.role;
+    const item=document.createElement("article");item.className="message "+row.role;item.dataset.raw=String(row.content??"");
     const avatar=document.createElement("div");avatar.className="avatar";avatar.textContent=row.role==="assistant"?"V":"Y";
     const bodyWrap=document.createElement("div");const who=document.createElement("div");who.className="who";who.textContent=row.role==="assistant"?"Veyro":"You";
-    const body=document.createElement("div");body.className="body";body.textContent=row.content;
-    bodyWrap.append(who,body);item.append(avatar,bodyWrap);messagesEl.append(item);
+    const body=document.createElement("div");body.className="body";renderMarkdown(body,row.content);
+    const actions=document.createElement("div");actions.className="message-actions";
+    const copy=document.createElement("button");copy.type="button";copy.textContent="Copy message";copy.addEventListener("click",async()=>{const ok=await copyText(item.dataset.raw||"");if(ok){copy.textContent="Copied!";setTimeout(()=>copy.textContent="Copy message",1200)}else toast("Couldn't copy message automatically.")});
+    actions.append(copy);bodyWrap.append(who,body,actions);item.append(avatar,bodyWrap);messagesEl.append(item);
   }
   chatEl.scrollTop=chatEl.scrollHeight;
 }
