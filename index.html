@@ -217,17 +217,54 @@ async function startSession(s){
  if(data?.id)await openConversation(data.id);else await newConversation();
 }
 $("authForm").addEventListener("submit",async e=>{
- e.preventDefault();showError("authError","");$("authSubmit").disabled=true;$("authSubmit").textContent="Sending…";
- try{const email=$("email").value.trim();const {error}=await client.auth.signInWithOtp({email,options:{emailRedirectTo:"https://pickles315.github.io/Veyro/"}});if(error)throw error;showError("authError","Sign-in link sent. Open it from this browser to continue.");}
- catch(err){showError("authError",err.message||"Could not send sign-in link.");}
- finally{$("authSubmit").disabled=false;$("authSubmit").textContent="Email me a sign-in link"}
+ e.preventDefault();
+ showError("authError","");
+ const email=$("email").value.trim();
+ if(!email){showError("authError","Enter your email address first.");return}
+ $("authSubmit").disabled=true;
+ $("authSubmit").textContent="Sending link…";
+ try{
+  const {data,error}=await client.auth.signInWithOtp({email,options:{emailRedirectTo:"https://pickles315.github.io/Veyro/"}});
+  if(error)throw error;
+  showError("authError","Request accepted. Check your inbox and spam folder for the Veyro sign-in link. If nothing arrives, Supabase email/SMTP settings may need attention.");
+ }catch(err){
+  console.error("Veyro email sign-in failed:",err);
+  showError("authError","Couldn't send the sign-in link: "+(err?.message||"Unknown error")+". Check Supabase Auth email settings and allowed redirect URLs.");
+ }finally{
+  $("authSubmit").disabled=false;
+  $("authSubmit").textContent="Email me a sign-in link";
+ }
 });
-client.auth.onAuthStateChange((_event,s)=>{if(s&&!session){setTimeout(()=>startSession(s),0)}else if(!s){session=null;$("authOverlay").classList.remove("hidden");setStatus("Signed out")}});
+client.auth.onAuthStateChange((_event,s)=>{
+ if(s&&!session){setTimeout(()=>startSession(s),0)}
+ else if(!s){session=null;$("authOverlay").classList.remove("hidden");setStatus("Signed out")}
+});
 $("composer").addEventListener("submit",e=>{e.preventDefault();sendMessage($("prompt").value)});
 $("prompt").addEventListener("keydown",e=>{if(e.key==="Enter"&&!e.shiftKey){e.preventDefault();$("composer").requestSubmit()}});
 $("prompt").addEventListener("input",()=>{$("prompt").style.height="auto";$("prompt").style.height=Math.min($("prompt").scrollHeight,180)+"px"});
 $("newChat").addEventListener("click",async()=>{if(busy)return;currentConversation=null;renderMessages([]);showWelcome();if(!isGuest)await newConversation();else currentConversation="guest"});
-$("guestBtn").addEventListener("click",async()=>{showError("authError","");$("guestBtn").disabled=true;$("guestBtn").textContent="Starting guest session…";try{const {data,error}=await client.auth.signInAnonymously();if(error)throw error;if(data.session)await startSession(data.session)}catch(err){showError("authError","Guest mode needs anonymous sign-ins enabled in Supabase. "+(err.message||""));}finally{$("guestBtn").disabled=false;$("guestBtn").textContent="Try without an account"}});
+$("guestBtn").addEventListener("click",async()=>{
+ showError("authError","");
+ $("guestBtn").disabled=true;
+ $("guestBtn").textContent="Starting guest session…";
+ try{
+  const {data,error}=await client.auth.signInAnonymously();
+  if(error)throw error;
+  if(data.session){
+   await startSession(data.session);
+   showError("authError","");
+  }else{
+   showError("authError","Supabase didn't create a guest session. Check Auth > Sign In / Providers > Anonymous sign-ins.");
+  }
+ }catch(err){
+  console.error("Veyro guest sign-in failed:",err);
+  const detail=err?.message||"Unknown error";
+  showError("authError","Guest mode failed: "+detail+". In Supabase, open Authentication > Sign In / Providers and enable Anonymous sign-ins.");
+ }finally{
+  $("guestBtn").disabled=false;
+  $("guestBtn").textContent="Try without an account";
+ }
+});
 document.querySelectorAll("[data-prompt]").forEach(b=>b.addEventListener("click",()=>{$("prompt").value=b.dataset.prompt;$("prompt").focus()}));
 $("signOutBtn").addEventListener("click",async()=>{await client.auth.signOut();session=null;isGuest=false;currentConversation=null;memories=[];settings=null;$("authOverlay").classList.remove("hidden");showWelcome();renderMessages([])});
 $("panelClose").addEventListener("click",()=>$("panelOverlay").classList.add("hidden"));
