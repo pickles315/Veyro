@@ -349,7 +349,8 @@ function runPythonCode(){
  pythonLoadTimer=setTimeout(()=>{if(!hasStarted){stopPython("Python took too long to load.");appendPythonOutput("Could not load Python. Check your connection and try again.\n","err");}},60000);
  pythonWorker.postMessage({type:"run",runId,code});
 }
-\nasync function openPanel(mode){
+
+async function openPanel(mode){
  if(!session)return;panelMode=mode;showError("panelError","");
  $("panelTitle").textContent=mode==="memories"?"Memories":"Personality";
  $("panelDescription").textContent=mode==="memories"?"Things Veyro can use as context. You can add or delete them whenever you want.":"Adjust how Veyro talks. This affects future replies.";
