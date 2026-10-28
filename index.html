@@ -176,6 +176,25 @@ async function sendMessage(raw){
    const existingCount=optimistic.length;
    if(existingCount<=1){await client.from("conversations").update({title,updated_at:new Date().toISOString()}).eq("id",cid)}
   }
+  // Release 03: an explicit "remember that..." request can save a memory.
+  // Never auto-save likely credentials or highly sensitive identifiers.
+  const rememberMatch=content.match(/^\s*(?:veyro[,! ]*)?(?:please\s+)?remember(?:\s+that|\s*:)?\s+([\s\S]{3,2000})\s*$/i);
+  if(rememberMatch){
+   const memoryContent=rememberMatch[1].trim();
+   const sensitive=/(?:password|passphrase|api[ -]?key|access token|secret key|credit card|social security|\bssn\b|recovery code)/i.test(memoryContent);
+   if(isGuest){
+    toast("Guest memories aren't saved. Sign in to keep this for later.");
+   }else if(sensitive){
+    toast("I didn't save that because it looks like sensitive information.");
+   }else{
+    const duplicate=memories.some(m=>m.content.trim().toLowerCase()===memoryContent.toLowerCase());
+    if(!duplicate){
+     const {data:memoryRow,error:memoryError}=await client.from("memories").insert({user_id:session.user.id,content:memoryContent,category:"general"}).select("id,content,category,updated_at").single();
+     if(memoryError)toast("I couldn't save that memory: "+memoryError.message);
+     else{memories.unshift(memoryRow);toast("I'll remember that for future chats.");}
+    }else toast("I already have that saved.");
+   }
+  }
   const history=optimistic.slice(-30).map(m=>({role:m.role,content:m.content}));
   const response=await fetch(CHAT_FUNCTION_URL,{method:"POST",headers:{"Content-Type":"application/json","Authorization":"Bearer "+session.access_token,"apikey":SUPABASE_PUBLISHABLE_KEY},body:JSON.stringify({messages:history,personality:settings?.personality,memories:memories.map(m=>m.content)})});
   const result=await response.json().catch(()=>({}));
