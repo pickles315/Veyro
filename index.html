@@ -241,7 +241,7 @@ async function sendMessage(raw){
    }
   }
   const history=optimistic.slice(-30).map(m=>({role:m.role,content:m.content}));
-  const response=await fetch(CHAT_FUNCTION_URL,{method:"POST",headers:{"Content-Type":"application/json","Authorization":"Bearer "+session.access_token,"apikey":SUPABASE_PUBLISHABLE_KEY},body:JSON.stringify({messages:history,personality:[settings?.personality,buildMode?"Build mode is enabled. Help the user build and debug projects. Be practical and beginner-friendly: provide complete working code when requested, explain exactly where to put it, identify likely causes of errors, and avoid vague advice. Do not claim code was tested unless it actually was.":""] .filter(Boolean).join("\n\n"),memories:memories.map(m=>m.content)})});
+  const response=await fetch(CHAT_FUNCTION_URL,{method:"POST",headers:{"Content-Type":"application/json","Authorization":"Bearer "+session.access_token,"apikey":SUPABASE_PUBLISHABLE_KEY},body:JSON.stringify({messages:history,personality:[buildMode?"Build mode is enabled. Help the user build and debug projects. Be practical and beginner-friendly: provide complete working code when requested, explain exactly where to put it, identify likely causes of errors, and avoid vague advice. Do not claim code was tested unless it actually was.":"",settings?.personality] .filter(Boolean).join("\n\n"),memories:memories.map(m=>m.content)})});
   const result=await response.json().catch(()=>({}));
   if(!response.ok)throw new Error(result.error||"AI request failed ("+response.status+").");
   if(typeof result.reply!=="string"||!result.reply.trim())throw new Error("Veyro returned an empty response.");
