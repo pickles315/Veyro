@@ -218,7 +218,7 @@ async function sendMessage(raw){
  optimistic.push({role:"user",content});showChat();renderMessages([...optimistic,{role:"assistant",content:"Thinking…"}]);
  const liveBody=messagesEl.querySelector(".message.assistant:last-child .body");
  if(liveBody){liveBody.textContent="Thinking…";liveBody.style.color="var(--muted)";liveBody.style.fontStyle="italic";}
- let partialReply="";
+ let partialReply="";let sawDone=false;let finishReason=null;
  try{
   if(!isGuest){
    const {error:userErr}=await client.from("messages").insert({conversation_id:cid,user_id:session.user.id,role:"user",content}).select("id").single();
@@ -259,10 +259,13 @@ async function sendMessage(raw){
   const handleSseLine=(line)=>{
    if(!line.startsWith("data:"))return;
    const payload=line.slice(5).trim();
-   if(!payload||payload==="[DONE]")return;
+   if(!payload)return;
+   if(payload==="[DONE]"){sawDone=true;return;}
    let eventData;
    try{eventData=JSON.parse(payload)}catch{return}
    if(eventData.error)throw new Error(eventData.error.message||"The AI provider stopped the stream.");
+   const reason=eventData.choices?.[0]?.finish_reason;
+   if(typeof reason==="string"&&reason)finishReason=reason;
    const delta=eventData.choices?.[0]?.delta?.content;
    if(typeof delta==="string"&&delta){partialReply+=delta;paintPartial();}
    else if(Array.isArray(delta)){for(const part of delta){if(typeof part?.text==="string")partialReply+=part.text;}paintPartial();}
@@ -276,7 +279,9 @@ async function sendMessage(raw){
   }
   buffer+=decoder.decode();
   if(buffer.trim())handleSseLine(buffer.trim());
-  const reply=partialReply.trim().replace(/^(?:(?:user\s+)?safety\s*:\s*(?:safe|unsafe|unknown)\s*|(?:response\s+)?safety\s*:\s*(?:safe|unsafe|unknown)\s*)+/i,"").trim();
+  if(!sawDone)throw new Error("The AI stream ended before OpenRouter marked it complete.");
+  let reply=partialReply.trim().replace(/^(?:(?:user\\s+)?safety\\s*:\\s*(?:safe|unsafe|unknown)\\s*|(?:response\\s+)?safety\\s*:\\s*(?:safe|unsafe|unknown)\\s*)+/i,"").trim();
+  if(finishReason==="length")reply+="\\n\\n[Reply cut off: the model reached its output limit. Try asking for a shorter answer.]";
   if(!reply)throw new Error("Veyro returned an empty response. Please try again.");
   if(!isGuest){const {error:saveErr}=await client.from("messages").insert({conversation_id:cid,user_id:session.user.id,role:"assistant",content:reply});if(saveErr)throw saveErr}
   renderMessages([...optimistic,{role:"assistant",content:reply}]);if(!isGuest)await loadHistory();setStatus("Ready");
