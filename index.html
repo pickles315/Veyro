@@ -280,8 +280,8 @@ async function sendMessage(raw){
   buffer+=decoder.decode();
   if(buffer.trim())handleSseLine(buffer.trim());
   if(!sawDone)throw new Error("The AI stream ended before OpenRouter marked it complete.");
-  let reply=partialReply.trim().replace(/^(?:(?:user\\s+)?safety\\s*:\\s*(?:safe|unsafe|unknown)\\s*|(?:response\\s+)?safety\\s*:\\s*(?:safe|unsafe|unknown)\\s*)+/i,"").trim();
-  if(finishReason==="length")reply+="\\n\\n[Reply cut off: the model reached its output limit. Try asking for a shorter answer.]";
+  let reply=partialReply.trim().replace(/^(?:(?:user\s+)?safety\s*:\s*(?:safe|unsafe|unknown)\s*|(?:response\s+)?safety\s*:\s*(?:safe|unsafe|unknown)\s*)+/i,"").trim();
+  if(finishReason==="length")reply+="\n\n[Reply cut off: the model reached its output limit. Try asking for a shorter answer.]";
   if(!reply)throw new Error("Veyro returned an empty response. Please try again.");
   if(!isGuest){const {error:saveErr}=await client.from("messages").insert({conversation_id:cid,user_id:session.user.id,role:"assistant",content:reply});if(saveErr)throw saveErr}
   renderMessages([...optimistic,{role:"assistant",content:reply}]);if(!isGuest)await loadHistory();setStatus("Ready");
