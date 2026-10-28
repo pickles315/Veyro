@@ -69,7 +69,7 @@ for number in range(1, 6):
 <script>
 /* If the primary CDN is blocked, try the same Supabase library from unpkg. */
 if (!window.supabase) {
-  document.write('<script src="https://unpkg.com/@supabase/supabase-js@2.57.0/dist/umd/supabase.min.js"><\\/script>');
+  document.write('<script src="https://unpkg.com/@supabase/supabase-js@2.57.0/dist/umd/supabase.min.js"><\/script>');
 }
 /* Keep startup errors visible for people who cannot open developer tools. */
 window.addEventListener("error", function (event) {
