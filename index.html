@@ -256,9 +256,10 @@ async function sendMessage(raw){
    if(bodyEl){bodyEl.style.color="";bodyEl.style.fontStyle="";bodyEl.style.whiteSpace="pre-wrap";bodyEl.textContent=partialReply;chatEl.scrollTop=chatEl.scrollHeight;}
    setStatus("Veyro is typing…");
   };
-  const handleSseLine=(line)=>{
-   if(!line.startsWith("data:"))return;
-   const payload=line.slice(5).trim();
+  const dispatchSseEvent=()=>{
+   if(!eventDataLines.length)return;
+   const payload=eventDataLines.join("\n").trim();
+   eventDataLines=[];
    if(!payload)return;
    if(payload==="[DONE]"){sawDone=true;return;}
    let eventData;
@@ -270,16 +271,25 @@ async function sendMessage(raw){
    if(typeof delta==="string"&&delta){partialReply+=delta;paintPartial();}
    else if(Array.isArray(delta)){for(const part of delta){if(typeof part?.text==="string")partialReply+=part.text;}paintPartial();}
   };
+  const handleSseLine=(line)=>{
+   if(line===""){dispatchSseEvent();return;}
+   if(line.startsWith(":"))return;
+   if(line.startsWith("data:"))eventDataLines.push(line.slice(5).replace(/^ /,""));
+  };
+  let eventDataLines=[];
   while(true){
    const {value,done}=await reader.read();
    if(done)break;
    buffer+=decoder.decode(value,{stream:true});
-   const lines=buffer.split(/\r?\n/);buffer=lines.pop()||"";
+   const lines=buffer.split(/\r\n|\n|\r/);buffer=lines.pop()||"";
    for(const line of lines)handleSseLine(line);
   }
   buffer+=decoder.decode();
-  if(buffer.trim())handleSseLine(buffer.trim());
-  if(!sawDone)throw new Error("The AI stream ended before OpenRouter marked it complete.");
+  if(buffer)handleSseLine(buffer);
+  dispatchSseEvent();
+  // Some OpenRouter-compatible providers close after a finish_reason without
+  // sending the optional [DONE] sentinel. A finished choice is still complete.
+  if(!sawDone&&!finishReason)throw new Error("The AI connection closed before the model finished its reply.");
   let reply=partialReply.trim().replace(/^(?:(?:user\s+)?safety\s*:\s*(?:safe|unsafe|unknown)\s*|(?:response\s+)?safety\s*:\s*(?:safe|unsafe|unknown)\s*)+/i,"").trim();
   if(finishReason==="length")reply+="\n\n[Reply cut off: the model reached its output limit. Try asking for a shorter answer.]";
   if(!reply)throw new Error("Veyro returned an empty response. Please try again.");
